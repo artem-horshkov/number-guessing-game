@@ -11,5 +11,6 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
+    "log-update": "^7.2.0"
   }
 }

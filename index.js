@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
 import readline from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
+import logUpdate from "log-update";
 
-const rl = readline.createInterface({ input, output });
+const rl = readline.createInterface({ 
+    input: process.stdin,
+    output: process.stdout
+});
 
 const DIFFICULTIES = {
     1: { name: 'Easy', chances: 10 },
@@ -30,6 +33,47 @@ function formatDuration(duration) {
 
     if (minutes === 0) return `${seconds}s`;
     return `${minutes}m ${seconds}s`;
+}
+
+let interrupted = false;
+
+process.on('SIGINT', () => {
+  interrupted = true;
+});
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function animLog(message, delay = 100) {
+  if (message == null) throw new Error('Message is required');
+  if (!isFinite(delay) || delay < 0) {
+    throw new Error('Delay must be a non-negative finite number');
+  }
+
+  const text = String(message);
+  let output = '';
+
+  try {
+    for (const ch of text) {
+      if (interrupted) break;
+
+      output += ch;
+      logUpdate(output + '▋');
+      await sleep(delay);
+    }
+
+    if (!interrupted) {
+      logUpdate(output);
+    }
+  } finally {
+    logUpdate.done();
+  }
+
+  if (interrupted) {
+    console.log('\nThe game was interrupted by the user.');
+    process.exitCode = 0;
+  }
 }
 
 function printWelcome() {
